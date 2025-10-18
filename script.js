@@ -2,8 +2,8 @@
 const tileRadius = 25;
 const canvas = document.getElementById("Canvas");
 const ctx = canvas.getContext("2d")
-const worldWidth = 10;
-const worldHeight = 10
+const worldWidth = 40;
+const worldHeight = 15
 //commonly used constants, saves on computation time
 const ROOT3 = Math.sqrt(3);
 //get the points on a hexagon with the center x and y
@@ -32,14 +32,15 @@ function GenerateCenters(sX, sY, width, height) {
 }
 //renders a hexagon given the points
 //vR is the radius of a circle generated at the point lW is the width of the line 
-function RenderHexagon(points, lW = 2, vR = 0) {
+function RenderHexagon(points, lW = 2, vR = 0, fillStyle = "rgba(0, 91, 139, 1)") {
+    ctx.fillStyle = fillStyle;
     ctx.beginPath();
     ctx.moveTo(points[0][0], points[0][1]);
     for (let i = 1; i < points.length; i++) {
         ctx.lineTo(points[i][0], points[i][1]);
     }
     ctx.lineTo(points[0][0], points[0][1]);
-    ctx.stroke();
+    ctx.fill();
 }
 //returns the borders of the hexagon, clockwise, starting from the top
 function GetBorders(hexID) {
@@ -78,12 +79,51 @@ function GetBorders(hexID) {
     return borders;
 }
 
+//implementation of Dijkstra's algorithm to get from 1 hexagon to another.
+function Dijkstra(sID, eID) {
+    let route = [];
+    let queue = [sID];
+    const visited = new Set();
+    const fastest = {}
+    while (queue.length > 0) {
+        const current = queue.shift()
+        if (current == eID) {
+            break;
+        }
+        const borders = GetBorders(current);
+        for (let i = 0; i < borders.length; i++) {
+            if (!visited.has(borders[i]) && !queue.includes(borders[i])) {
+                queue.push(borders[i]);
+                fastest[borders[i]] = current;
+            }
+        }
+        visited.add(current);
+    }
+    if (fastest[eID]) {
+        let currentNode = fastest[eID];
+        route.push(eID);
+        route.push(currentNode);
+        while (currentNode != sID) {
+            currentNode = fastest[currentNode];
+            route.push(currentNode);
+        }
+    }
+    route.reverse()
+    return route;
+}
+
 //draw and label hexagons
 let idx = 0;
-GenerateCenters(25, 25, worldWidth, worldHeight).forEach((center) => {
-    ctx.font = "14px sans serif";
-    ctx.fillText(idx, center[0], center[1]);
+let hexCenters = GenerateCenters(25, 25, worldWidth, worldHeight)
+hexCenters.forEach((center) => {
     const hexPoints = GetVertexPoints(center[0], center[1]);
     RenderHexagon(hexPoints)
+    ctx.fillStyle = "black";
+    ctx.font = "14px sans serif";
+    ctx.fillText(idx, center[0] - (String(idx).length * 3), center[1] + 3);
     idx++;
 })
+let route = Dijkstra(0, 593)
+for (let i = 0; i < route.length; i++) {
+    RenderHexagon(GetVertexPoints(hexCenters[route[i]][0], hexCenters[route[i]][1]), 2, 0, "rgba(100, 0, 0, 0.5)");
+}
