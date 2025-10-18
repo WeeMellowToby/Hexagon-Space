@@ -41,7 +41,42 @@ function RenderHexagon(points, lW = 2, vR = 0) {
     ctx.lineTo(points[0][0], points[0][1]);
     ctx.stroke();
 }
+//returns the borders of the hexagon, clockwise, starting from the top
+function GetBorders(hexID) {
+    const x = hexID % worldWidth;
+    const y = Math.floor(hexID / worldWidth);
+    const borders = [];
+    //horizontal offsets are different based on whether the hexagon has an odd or even index
+    const evenOffsets = [
+        [0, -1],  // top
+        [1, -1],  // top-right
+        [1, 0],   // bottom-right
+        [0, 1],   // bottom
+        [-1, 0],  // bottom-left
+        [-1, -1], // top-left
+    ];
+    const oddOffsets = [
+        [0, -1],  // top
+        [1, 0],   // top-right
+        [1, 1],   // bottom-right
+        [0, 1],   // bottom
+        [-1, 1],  // bottom-left
+        [-1, 0],  // top-left
+    ];
+    const offsets = (x % 2 === 0) ? evenOffsets : oddOffsets;
 
+    for (const [dx, dy] of offsets) {
+        const nx = x + dx;
+        const ny = y + dy;
+
+        if (nx >= 0 && nx < worldWidth && ny >= 0 && ny < worldHeight) {
+            const neighborID = ny * worldWidth + nx;
+            borders.push(neighborID);
+        }
+    }
+
+    return borders;
+}
 
 //draw and label hexagons
 let idx = 0;
