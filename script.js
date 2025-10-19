@@ -111,11 +111,42 @@ function Dijkstra(sID, eID) {
     route.reverse()
     return route;
 }
-
+//given the x and y of the center of a hexagon
+function PositionInHexagon(x, y, hX, hY) {
+    let a = hX;
+    let b = hY;
+    let r = tileRadius;
+    if (y < -r * 0.5 * ROOT3 + b) {
+        console.log("Failed at EQ1")
+        return false;
+    }
+    if (y > r * 0.5 * ROOT3 + b) {
+        console.log("Failed at EQ2")
+        return false;
+    }
+    if (y > ROOT3 * (x - a) + (r * ROOT3) + b) {
+        console.log("Failed at EQ3")
+        return false;
+    }
+    if (y < ROOT3 * (x - a) - (r * ROOT3) + b) {
+        console.log("Failed at EQ4")
+        return false;
+    }
+    if (y > (-ROOT3 * (x - a)) + (r * ROOT3) + b) {
+        console.log("Failed at EQ5")
+        return false;
+    }
+    if (y < (-ROOT3 * (x - a)) - (r * ROOT3) + b) {
+        console.log("Failed at EQ6")
+        return false;
+    }
+    return true;
+}
 //draw and label hexagons
 let idx = 0;
 let hexCenters = GenerateCenters(25, 25, worldWidth, worldHeight)
 hexCenters.forEach((center) => {
+    console.log(PositionInHexagon(center[0], center[1], center[0], center[1]))
     const hexPoints = GetVertexPoints(center[0], center[1]);
     RenderHexagon(hexPoints)
     ctx.fillStyle = "black";
@@ -123,7 +154,8 @@ hexCenters.forEach((center) => {
     ctx.fillText(idx, center[0] - (String(idx).length * 3), center[1] + 3);
     idx++;
 })
-let route = Dijkstra(0, 593)
+//run Dijkstra's algorithm and then reveal the path
+let route = Dijkstra(0, 147)
 for (let i = 0; i < route.length; i++) {
     RenderHexagon(GetVertexPoints(hexCenters[route[i]][0], hexCenters[route[i]][1]), 2, 0, "rgba(100, 0, 0, 0.5)");
 }
